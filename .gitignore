@@ -1,0 +1,8 @@
+GetLatestDockers/docker_images_tar/
+ollama_models/models/
+nginx_conf/
+docker-compose.yml
+open_webui_data/
+ollama_data/
+postgres_data/
+nginx_ssl/
