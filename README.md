@@ -1,346 +1,183 @@
-# Docker Environment Setup with PostgreSQL, Ollama, Open WebUI, and Nginx
+# Docker Compose Setup Script for Open WebUI with Ollama and Nginx
 
-![Docker Logo](https://www.docker.com/sites/default/files/d8/2019-07/Moby-logo.png)
+This script automates the setup of a Docker Compose environment featuring PostgreSQL, Ollama, Open WebUI, and Nginx. It detects GPU availability to configure services accordingly and helps you set up necessary directories and configurations.
+
+---
 
 ## Table of Contents
 
-- [Introduction](#introduction)
 - [Features](#features)
 - [Prerequisites](#prerequisites)
-- [Installation](#installation)
 - [Usage](#usage)
-  - [Running the Setup Script](#running-the-setup-script)
-  - [Interactive Prompts](#interactive-prompts)
+- [Interactive Prompts](#interactive-prompts)
 - [Configuration Details](#configuration-details)
-  - [Domain Names and IP Addresses](#domain-names-and-ip-addresses)
-  - [HTTPS Setup](#https-setup)
-  - [OpenAI API Integration](#openai-api-integration)
-  - [GPU Configuration](#gpu-configuration)
-- [Directory Structure](#directory-structure)
-- [SSL Certificate Setup](#ssl-certificate-setup)
+  - [Directory Structure](#directory-structure)
+  - [SSL Certificates](#ssl-certificates)
 - [Starting the Services](#starting-the-services)
-- [Stopping the Services](#stopping-the-services)
+- [Additional Notes](#additional-notes)
 - [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
 - [License](#license)
 
-## Introduction
-
-This repository provides a **Bash script** (`setup_docker.sh`) that automates the setup of a **Docker Compose** environment comprising:
-
-- **PostgreSQL**: A powerful, open-source object-relational database system.
-- **Ollama**: A service (assuming a specific use case; ensure to replace with actual description if different).
-- **Open WebUI**: A web-based user interface for managing services.
-- **Nginx**: A high-performance web server and reverse proxy.
-
-The script intelligently detects GPU availability to configure services accordingly and offers options to enable HTTPS and integrate the OpenAI API.
+---
 
 ## Features
 
-- **Automatic GPU Detection**: Configures Docker services to utilize GPU resources if available.
-- **Flexible Domain Configuration**: Allows users to specify multiple domain names or IP addresses.
-- **HTTPS Support**: Option to enable secure HTTPS connections using SSL certificates.
-- **OpenAI API Integration**: Enables integration with the OpenAI API by providing an API key.
-- **Automated Configuration Generation**: Generates `docker-compose.yml` and Nginx configuration files based on user inputs.
-- **Tool Management**: Downloads and manages necessary tools like `yq` for YAML processing.
+- **Automatic GPU Detection**: Configures services for GPU usage if available.
+- **Custom Domain Configuration**: Supports setting up multiple domains or IP addresses.
+- **OpenAI API Integration**: Optionally enable the OpenAI API by providing your API key.
+- **HTTPS Support**: Optionally enable HTTPS with custom SSL certificates.
+- **Customizable Paths**: Choose the root path for Docker volumes and configurations.
+- **Automated Nginx Configuration**: Generates Nginx configuration files based on your input.
+- **SSL Setup**: Assists in setting up SSL certificates and `dhparam.pem`.
+
+---
 
 ## Prerequisites
 
-Before running the setup script, ensure that the following prerequisites are met:
+- **Docker**: Install from [Docker's official website](https://docs.docker.com/get-docker/).
+- **Docker Compose**: Install from [Docker Compose documentation](https://docs.docker.com/compose/install/).
+- **NVIDIA Drivers and Docker Toolkit**: Required if you plan to use GPU acceleration.
 
-### Required Software
+---
 
-- **Docker**: [Install Docker](https://docs.docker.com/get-docker/)
-- **Docker Compose**: [Install Docker Compose](https://docs.docker.com/compose/install/)
-- **Bash Shell**: Ensure you are running a Unix-like operating system with Bash.
+## Usage
 
-### Optional (Based on Configuration)
+1. **Clone the Repository** (if applicable) or copy the script into your desired directory.
 
-- **NVIDIA Drivers and Docker Toolkit**: Required if you plan to utilize GPU resources.
-  - [Install NVIDIA Drivers](https://www.nvidia.com/Download/index.aspx)
-  - [Install NVIDIA Docker Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
-- **Certbot**: Required for SSL certificate generation if enabling HTTPS.
-  - [Install Certbot](https://certbot.eff.org/instructions)
-
-## Installation
-
-1. **Clone the Repository**
-
-   ```bash
-   git clone https://github.com/yourusername/your-repo-name.git
-   cd your-repo-name
-   ```
-
-2. **Make the Setup Script Executable**
+2. **Make the Script Executable**:
 
    ```bash
    chmod +x setup_docker.sh
    ```
 
-## Usage
+3. **Run the Script**:
 
-### Running the Setup Script
+   ```bash
+   ./setup_docker.sh
+   ```
 
-Execute the `setup_docker.sh` script to initiate the Docker environment setup:
+---
 
-```bash
-./setup_docker.sh
-```
+## Interactive Prompts
 
-### Interactive Prompts
+The script will guide you through several prompts:
 
-The script will guide you through several interactive prompts to customize your Docker setup:
+1. **Root Path for Docker Volumes**:
+   - Enter the absolute path where you want to store Docker volumes and configurations.
+   - Leave empty to use the script's directory.
 
-1. **Root Path for Docker Volumes**
-   - **Description**: Specifies where Docker volumes will be stored on your host system.
-   - **Default**: The directory where the script resides.
+2. **Domain Names or IP Addresses**:
+   - Enter your main domain or IP address (e.g., `chat.example.com` or `192.168.1.1`).
+   - Optionally, enter additional domains or IPs to redirect to the main domain.
+   - Type `done` when finished.
 
-2. **Domain Names or IP Addresses**
-   - **Description**: Enter one or more domain names (e.g., `chat.example.com`) or IP addresses (e.g., `192.168.1.1`).
-   - **Usage**:
-     - The first valid entry becomes the main domain.
-     - Additional entries will redirect to the main domain.
+3. **Enable OpenAI API**:
+   - Choose whether to enable the OpenAI API integration.
+   - If enabled, provide your OpenAI API key or leave empty to use a placeholder.
 
-3. **Enable OpenAI API**
-   - **Description**: Choose whether to integrate the OpenAI API.
-   - **Options**:
-     - **Yes**: You'll be prompted to enter your OpenAI API key.
-     - **No**: The OpenAI API integration will be disabled.
+4. **Enable HTTPS**:
+   - Choose whether to enable HTTPS for your domain(s).
+   - If enabled, you'll need to provide SSL certificates.
 
-4. **Enable HTTPS**
-   - **Description**: Decide whether to enable HTTPS for secure connections.
-   - **Options**:
-     - **Yes**: Configures Nginx to use SSL certificates.
-     - **No**: Configures Nginx to use HTTP only.
+---
 
 ## Configuration Details
 
-### Domain Names and IP Addresses
+### Directory Structure
 
-- **Main Domain**: The primary domain where your services will be accessible.
-- **Additional Domains**: Any extra domains or IPs will redirect to the main domain.
-
-**Example**:
+After running the script, the following directory structure will be created:
 
 ```
-Main Domain: chat.example.com
-Additional Domain: api.example.com
-```
-
-### HTTPS Setup
-
-- **Enabling HTTPS**:
-  - **Requires SSL Certificates**: Place your SSL certificates in the specified directories.
-  - **Nginx Configuration**: Configured to listen on port `443` with SSL.
-
-- **Disabling HTTPS**:
-  - **Nginx Configuration**: Configured to listen on port `80` without SSL.
-
-**Note**: It's highly recommended to enable HTTPS to secure data in transit.
-
-### OpenAI API Integration
-
-- **Enabling OpenAI API**:
-  - **API Key**: Provide your OpenAI API key during the setup.
-  - **Environment Variables**: The API key is injected into the Docker environment for `open-webui`.
-
-- **Disabling OpenAI API**:
-  - **No API Key**: The integration is skipped, and related environment variables are excluded.
-
-### GPU Configuration
-
-- **GPU Detected**:
-  - **Ollama and Open WebUI**: Configured to utilize GPU resources.
-  - **Docker Compose**: Modified to include GPU-specific settings using `yq`.
-
-- **GPU Not Detected**:
-  - **Ollama and Open WebUI**: Configured to run on CPU.
-  - **Docker Compose**: No GPU-specific settings applied.
-
-## Directory Structure
-
-After running the setup script, the following directory structure will be created:
-
-```
-/your-root-path
-│
+your-root-path/
 ├── docker-compose.yml
-├── postgres_data/
-├── ollama_data/
-├── open_webui_data/
 ├── nginx_conf/
-│   ├── main.conf
-│   └── redirects.conf
-├── nginx_certs/
-└── tools/
-    └── yq
+│   ├── default                 # Nginx main configuration file
+│   └── options-ssl-nginx.conf  # SSL options configuration
+├── nginx_ssl/
+│   ├── dhparam.pem             # Generated Diffie-Hellman parameter file
+│   ├── your-main-domain/
+│   │   ├── private.key         # Your SSL private key (place here)
+│   │   └── fullchain.pem       # Your SSL certificate chain (place here)
+│   └── additional-domain(s)/   # Additional domains' SSL files (if any)
+├── ollama_data/                # Data for Ollama
+├── open_webui_data/            # Data for Open WebUI
+└── postgres_data/              # Data for PostgreSQL
 ```
 
-- **docker-compose.yml**: Defines the Docker services and configurations.
-- **postgres_data/**: Stores PostgreSQL data.
-- **ollama_data/**: Stores Ollama data.
-- **open_webui_data/**: Stores Open WebUI data.
-- **nginx_conf/**: Contains Nginx configuration files.
-  - **main.conf**: Main Nginx server block.
-  - **redirects.conf**: Redirects for additional domains.
-- **nginx_certs/**: Stores SSL certificates (if HTTPS is enabled).
-- **tools/**: Contains utility binaries like `yq`.
+### SSL Certificates
 
-## SSL Certificate Setup
+If you enabled HTTPS:
 
-If you opted to enable HTTPS during the setup, follow these steps to obtain and place your SSL certificates:
+- **SSL Certificates Location**:
+  - Main Domain:
+    - Private Key: `nginx_ssl/your-main-domain/private.key`
+    - Full Chain Certificate: `nginx_ssl/your-main-domain/fullchain.pem`
+  - Additional Domains:
+    - Place SSL files in `nginx_ssl/your-additional-domain/`
 
-1. **Obtain SSL Certificates Using Certbot**
+- **dhparam.pem**:
+  - Generated automatically and placed in `nginx_ssl/dhparam.pem`.
 
-   Replace `your-main-domain.com` with your actual main domain.
+- **Nginx Configuration**:
+  - SSL certificate paths in the Nginx configuration are set to match these directories.
 
-   ```bash
-   sudo certbot certonly --webroot -w /path/to/nginx_conf -d your-main-domain.com
-   ```
+**Important**: Ensure your SSL certificate files are correctly placed before starting the services.
 
-   For additional domains:
-
-   ```bash
-   sudo certbot certonly --webroot -w /path/to/nginx_conf -d additional-domain1.com -d additional-domain2.com
-   ```
-
-2. **Place Certificates in the Specified Directory**
-
-   Ensure that your certificates are located in:
-
-   ```
-   /your-root-path/nginx_certs/live/your-main-domain.com/fullchain.pem
-   /your-root-path/nginx_certs/live/your-main-domain.com/privkey.pem
-   ```
-
-   Repeat for additional domains as needed.
-
-3. **Verify Nginx Configuration**
-
-   Ensure that the certificate paths in `nginx_conf/main.conf` and `nginx_conf/redirects.conf` match the actual certificate locations.
+---
 
 ## Starting the Services
 
-Once the setup is complete and SSL certificates are in place (if HTTPS is enabled), start the Docker services:
+After configuring and placing your SSL certificates (if HTTPS is enabled), you can start the Docker services:
 
 ```bash
-docker-compose -f /your-root-path/docker-compose.yml up -d
+docker-compose -f "your-root-path/docker-compose.yml" up -d
 ```
 
-**Note**: Replace `/your-root-path` with the actual root path you specified during setup.
+**Note**: Replace `your-root-path` with the actual path you provided during setup.
 
-### Automatically Starting Services
+---
 
-The `setup_docker.sh` script includes optional lines to automatically start the services after setup. To enable this feature:
+## Additional Notes
 
-1. **Edit the Script**
+- **GPU Acceleration**:
+  - If a GPU is detected, the script configures Docker services to use GPU resources.
+  - Uses GPU-enabled Docker images for Ollama and Open WebUI.
 
-   Uncomment the following lines at the end of the script:
+- **OpenAI API Integration**:
+  - If enabled, your API key is set as an environment variable for the Open WebUI service.
 
-   ```bash
-   # echo "Starting Docker Compose services..."
-   # docker-compose -f "${ROOT_PATH}/docker-compose.yml" up -d
-   # echo "Docker Compose services started successfully."
-   # echo "Setup complete."
-   ```
+- **Custom Nginx Configuration**:
+  - The script generates a `default` configuration file that replaces Nginx's default.
+  - It handles domain redirection and proxy settings for Open WebUI.
 
-2. **Run the Script Again**
+- **YQ Installation**:
+  - The script downloads `yq`, a YAML processor, to handle dynamic Docker Compose modifications.
 
-   Execute the script to perform the setup and automatically start the services.
-
-## Stopping the Services
-
-To stop and remove the Docker services, execute:
-
-```bash
-docker-compose -f /your-root-path/docker-compose.yml down
-```
+---
 
 ## Troubleshooting
 
-### Common Issues
+- **SSL Certificate Issues**:
+  - Ensure the SSL certificates and private keys are correctly placed and have appropriate permissions.
+  - Check that the paths in the Nginx configuration match the actual file locations.
 
-1. **Docker or Docker Compose Not Installed**
+- **Docker Service Failures**:
+  - Run `docker-compose logs` to view logs for troubleshooting.
+  - Ensure all prerequisites are installed and properly configured.
 
-   - **Solution**: Follow the [Prerequisites](#prerequisites) section to install Docker and Docker Compose.
+- **GPU Not Detected**:
+  - Verify that NVIDIA drivers and Docker Toolkit are installed.
+  - Check GPU accessibility with `nvidia-smi`.
 
-2. **GPU Not Detected Despite Having NVIDIA Hardware**
+- **Port Conflicts**:
+  - Ensure that ports `80` and `443` (if HTTPS is enabled) are not in use by other services.
 
-   - **Solution**:
-     - Ensure NVIDIA drivers are correctly installed.
-     - Verify that the NVIDIA Docker Toolkit is installed.
-     - Restart Docker service: `sudo systemctl restart docker`
-
-3. **Nginx Fails to Start Due to SSL Issues**
-
-   - **Solution**:
-     - Verify that SSL certificates are correctly placed in the `nginx_certs` directory.
-     - Ensure certificate paths in Nginx configuration files are accurate.
-     - Check certificate validity using tools like [SSL Labs](https://www.ssllabs.com/ssltest/).
-
-4. **Open WebUI Not Accessible**
-
-   - **Solution**:
-     - Check if all Docker services are running: `docker-compose ps`
-     - Review logs for any service-specific errors: `docker-compose logs open-webui`
-
-### Viewing Logs
-
-To view logs for all services:
-
-```bash
-docker-compose -f /your-root-path/docker-compose.yml logs -f
-```
-
-To view logs for a specific service (e.g., Nginx):
-
-```bash
-docker-compose -f /your-root-path/docker-compose.yml logs -f nginx
-```
-
-## Contributing
-
-Contributions are welcome! Please follow these steps to contribute:
-
-1. **Fork the Repository**
-
-2. **Create a Feature Branch**
-
-   ```bash
-   git checkout -b feature/YourFeatureName
-   ```
-
-3. **Commit Your Changes**
-
-   ```bash
-   git commit -m "Add your feature"
-   ```
-
-4. **Push to the Branch**
-
-   ```bash
-   git push origin feature/YourFeatureName
-   ```
-
-5. **Open a Pull Request**
-
-Provide a clear description of your changes and the problem they solve.
+---
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
 
-## Acknowledgements
-
-- [Docker](https://www.docker.com/)
-- [Docker Compose](https://docs.docker.com/compose/)
-- [Nginx](https://www.nginx.com/)
-- [Certbot](https://certbot.eff.org/)
-- [yq](https://github.com/mikefarah/yq)
-
----
-
-**Happy Dockering! 🚀**
-
+**Thank you for using this setup script! If you encounter any issues or have suggestions for improvements, feel free to contribute or reach out.**
